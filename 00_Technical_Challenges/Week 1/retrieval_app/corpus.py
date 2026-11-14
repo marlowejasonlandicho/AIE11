@@ -8,7 +8,7 @@ not being able to explain it is not.
 Neither function knows or cares what your corpus is about. That is the point:
 swap the .txt in data/ and nothing in this file should need to change.
 """
-
+import os
 from pathlib import Path
 
 
@@ -24,7 +24,23 @@ def load_corpus(path: Path) -> str:
     Hint: this is three lines. `open()`, or `Path.read_text()`. Mind the
     encoding: read it as utf-8, and your own corpus may need you to mean it.
     """
-    raise NotImplementedError("Write load_corpus() in retrieval_app/corpus.py")
+
+    if os.path.isdir(path):
+        raise ValueError(
+            "Provided path is a directory and not a .txt file."
+        )
+    elif os.path.isfile(path):
+        if path.suffix.lower() == ".txt":
+            with open(path, "r", encoding="utf-8") as file:
+                return file.read()
+        else:
+            raise ValueError(
+            "Provided path is not a .txt file."
+            )
+    else:
+        raise ValueError(
+            "Invalid file"
+        )
 
 
 def split_corpus(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> list[str]:
@@ -47,4 +63,12 @@ def split_corpus(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) ->
     Hint: a range() that steps by (chunk_size - chunk_overlap), slicing as it
     goes. Why does the step subtract the overlap rather than add it?
     """
-    raise NotImplementedError("Write split_corpus() in retrieval_app/corpus.py")
+
+    assert chunk_size > chunk_overlap, (
+            "Chunk size must be greater than chunk overlap"
+        )
+    chunks = []
+    for i in range(0, len(text), chunk_size - chunk_overlap):
+        chunks.append(text[i: i + chunk_size])
+        
+    return chunks

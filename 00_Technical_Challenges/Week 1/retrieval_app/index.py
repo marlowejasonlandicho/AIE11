@@ -61,8 +61,13 @@ def embed_texts(texts: list[str]) -> np.ndarray:
     result in np.array(). Print `response.usage` once — knowing what a corpus
     costs to embed is the number that decides architecture at scale.
     """
-    raise NotImplementedError("Write embed_texts() in retrieval_app/index.py")
 
+    openAPIResponse = client().embeddings.create(input=texts, model=EMBEDDING_MODEL)
+    openAPIVectors = np.array([item.embedding for item in openAPIResponse.data])
+    
+    # print("Response usage: {usage}".format(usage = openAPIResponse.usage))
+
+    return openAPIVectors
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     """How similar are two vectors? 1.0 is identical, 0.0 is unrelated.
@@ -70,8 +75,8 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     Hint: the dot product, divided by the product of the two norms.
     NumPy has `np.dot` and `np.linalg.norm`.
     """
-    raise NotImplementedError("Write cosine_similarity() in retrieval_app/index.py")
 
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def build_index(chunks: list[str]) -> np.ndarray:
     """Embed every chunk once, and return the matrix to search against.
@@ -87,8 +92,8 @@ def build_index(chunks: list[str]) -> np.ndarray:
     Hint: this is mostly a call to embed_texts(). Notice that it happens once
     per process, and that a fresh process has no memory of the last one.
     """
-    raise NotImplementedError("Write build_index() in retrieval_app/index.py")
 
+    return embed_texts(chunks)
 
 def search(query: str, chunks: list[str], matrix: np.ndarray, k: int = 3) -> list[Hit]:
     """Find the k chunks most similar to the query.
@@ -110,4 +115,19 @@ def search(query: str, chunks: list[str], matrix: np.ndarray, k: int = 3) -> lis
       - Read the signature again: it says "up to k". Nothing here forces you to
         return exactly k. That freedom is the whole of Step 4's threshold option.
     """
-    raise NotImplementedError("Write search() in retrieval_app/index.py")
+
+    chunk_array = np.array(chunks)
+    query_embedding = embed_texts([query])
+
+    similarities = []
+    for vec in matrix:
+        similarity = np.dot(query_embedding, vec) / (np.linalg.norm(query_embedding) * np.linalg.norm(vec))
+        similarities.append(similarity.item())
+
+    top_k = np.argsort(similarities)[-k:][::-1]
+
+    results = []
+    for idx in top_k:
+        results.append(Hit(idx, chunk_array[idx], similarities[idx]))
+
+    return results    
