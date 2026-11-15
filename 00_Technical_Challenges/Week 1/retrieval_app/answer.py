@@ -6,15 +6,14 @@ in the pipeline to change and often the most effective.
 
 from .index import Hit, client
 
-# CHAT_MODEL = "gpt-4.1-mini"
-CHAT_MODEL = "gpt-6-luna"
+CHAT_MODEL = "gpt-4.1-mini"
 
 RAG_SYSTEM_TEMPLATE : str = """You are a helpful personal wellness assistant that answers health and wellness questions based strictly on provided context.
     Instructions:
     - Only answer questions using information from the provided context
     - If the context doesn't contain relevant information, respond with "I don't have information about that in my wellness knowledge base"
     - Be accurate and cite specific parts of the context when possible
-    - Keep responses detailed
+    - Keep responses detailed but brief
     - Only use the provided context. Do not use external knowledge.
     - Include a gentle reminder that users should consult healthcare professionals for medical advice when appropriate
     - Only provide answers when you are confident the context supports your response."""
@@ -51,7 +50,7 @@ def build_messages(question: str, hits: list[Hit]) -> list[dict]:
     Hint: Session 2's RAG_SYSTEM_TEMPLATE is a good starting point, and a
     better one once you have read Step 3's failures and edited it.
     """
-    
+
     messages = []
     context = ""
     context_count = len(hits)
@@ -87,6 +86,6 @@ def answer(question: str, hits: list[Hit]) -> str:
     """
 
     chat_messages = build_messages(question, hits)
-    response = client().chat.completions.create(model=CHAT_MODEL, messages=chat_messages)
+    response = client().chat.completions.create(model=CHAT_MODEL, messages=chat_messages, temperature=0.2)
 
     return response.choices[0].message.content

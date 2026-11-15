@@ -65,8 +65,6 @@ def embed_texts(texts: list[str]) -> np.ndarray:
     openAPIResponse = client().embeddings.create(input=texts, model=EMBEDDING_MODEL)
     openAPIVectors = np.array([item.embedding for item in openAPIResponse.data])
     
-    # print("Response usage: {usage}".format(usage = openAPIResponse.usage))
-
     return openAPIVectors
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
@@ -121,8 +119,9 @@ def search(query: str, chunks: list[str], matrix: np.ndarray, k: int = 3) -> lis
 
     similarities = []
     for vec in matrix:
-        similarity = np.dot(query_embedding, vec) / (np.linalg.norm(query_embedding) * np.linalg.norm(vec))
-        similarities.append(similarity.item())
+        similarity = cosine_similarity(query_embedding, vec)
+        if(similarity > 0.3):
+            similarities.append(similarity.item())
 
     top_k = np.argsort(similarities)[-k:][::-1]
 
