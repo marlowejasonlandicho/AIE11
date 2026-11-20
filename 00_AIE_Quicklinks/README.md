@@ -6,6 +6,13 @@ Quick links are to help you **easily navigate individual session information** f
 |:-----------------|:------------|:----------|:--------|:------------|
 | [Life As An AI Engineer ](https://github.com/AI-Maker-Space/AIE11/tree/main/01_Life_As_An_AI_Engineer) | [Recording!](https://us02web.zoom.us/rec/share/jAarPK0giKhBtd7Sk2SUaJQRTBGQSewEVIgMquMDU0kgeL6e5p3PdGVstrCZx3A.QaC8mvzYsqtvEnoZ) <br> passcode: `9kvErL?d` | [Slides](https://canva.link/5n1omu8z39yrhat) |    [TC 1](../00_Technical_Challenges/Week%201/README.md)      |  [11/9](https://forms.gle/znovu6Fieh3zaSx49) |
 | [Knowledge-Base Retrieval](../02_Dense_Vector_Retrieval) | [Recording!](https://us02web.zoom.us/rec/share/AvYfIK8j-wK7T9Qr2jOvTFgIj6ATBlxQFQ8GU2PHrpYfUhhItQffi1k_ANj9Blx2.BaekcO2DlvHyNrPu) <br> passcode: `kJsHtX0$` | [Slides](https://canva.link/921395kh21i85kf) |    [TC 1](../00_Technical_Challenges/Week%201/README.md)      |  [11/11](https://forms.gle/AEAU7Xt31yVyXbmU7) |
+| [Agent Harness](../03_The_Agent_Harness) | [Recording!](https://us02web.zoom.us/rec/share/4wHGDjwfuUd_lcrvMkLqQnl5tMH5sR-tZcVcgZNAgWEbY3itbPhiRyxS0BLSijQV.jjzjMPXlpBXqZ2lo) <br> passcode: `D0?ns*X0` | [Slides](https://canva.link/q76alw9szgdnur7) |    [TC 2](../00_Technical_Challenges/Week%202/README.md)      |  [11/16](https://forms.gle/ZczjQE5FaTKygmae8) |
+| [Agentic Search](../04_Agentic_Search) | [Recording!](https://us02web.zoom.us/rec/share/eM7WW2jyv4WhpacdaGR2gUREvOOQ3XgQu1AvY2GpEF8SYF-YXygxa6hfaPNZ5LSG.pltdWHk3wH4Hfqfx) <br> passcode: `xz5Y7@K3` | [Slides](https://canva.link/6nh2ti5yk7qvg6k) |    [TC 2](../00_Technical_Challenges/Week%202/README.md)      |  [11/18](https://forms.gle/ELBR8eLQ8N1tFSyAA) |
+
+
+
+https://us02web.zoom.us/rec/share/eM7WW2jyv4WhpacdaGR2gUREvOOQ3XgQu1AvY2GpEF8SYF-YXygxa6hfaPNZ5LSG.pltdWHk3wH4Hfqfx 
+Passcode: xz5Y7@K3
 
 ## Initial Setup
 1. [Environment Setup — **start here**](../00_Docs/Prerequisites/Initial_Setup/README.md)
