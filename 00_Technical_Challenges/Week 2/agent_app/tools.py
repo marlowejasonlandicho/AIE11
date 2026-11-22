@@ -89,9 +89,7 @@ def make_search_tool(retriever: BaseRetriever) -> BaseTool:
             
         """
 
-        vector_store = retriever.vectorstore
-
-        docs = vector_store.similarity_search_with_score(
+        docs = retriever.vectorstore.similarity_search_with_score(
             query,
             score_threshold=0.3,
             k=3

@@ -17,7 +17,6 @@ flowchart TB
     end
 
     subgraph OPENAPI["OpenAPI"]
-        EMBEDDINGS_LLM["Search embeddings"]
         LLM["Call chat model"]
     end
 
@@ -30,14 +29,13 @@ flowchart TB
     tavily_search -- "Web Search" --> web["WEB (Tavily)"]
 
     agent -- "Paid Call" --> LLM
-    search_wellness_knowledge -- "Paid Call" --> EMBEDDINGS_LLM
 
     agent -- "AskResponse" --> answer_question
     answer_question -- "AskResponse <br>JSON" --> http_response["HTTP Response"]
     http_response["HTTP Response"] --> user
 
     linkStyle 10 stroke:#ff3333,stroke-width:2px;
-    linkStyle 11 stroke:#ff3333,stroke-width:2px;
+    %% linkStyle 11 stroke:#ff3333,stroke-width:2px;
 
     classDef terminal fill:#eef2f6,stroke:#cbd5e1,color:#475569
     classDef agentNode fill:#fff1f2,stroke:#fb7185,color:#9f1239
@@ -54,5 +52,4 @@ flowchart TB
     class decision decisionNode
     class tools,TOOLS toolNode
     class guide,web source
-
 ```

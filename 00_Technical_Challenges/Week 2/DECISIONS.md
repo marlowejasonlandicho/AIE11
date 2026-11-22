@@ -7,16 +7,15 @@ Week 5 this file explains the decisions you made across the whole bootcamp.
 
 **What I changed**
 
-> One sentence. Your Step 4 augmentation (loop cap, scope router, structured output,
-> streaming, memory, reranking, …).
+> Real similarity scores (similarity_search_with_score).
 
 **Why**
 
-> Which of your 10 failures it targeted, and the before/after — not a mood, a measurement.
+> For Confidence Filtering (Hallucination Prevention) so the weak matches are discardes based on a certain threshold before passing to LLM.
 
 **What would change my mind**
 
-> The condition under which you would undo it.
+> When granular visibility is not needed on how well each result actually matched the query. Or a lose requirement of not needing strong matching.
 
 ---
 
@@ -25,4 +24,5 @@ Week 5 this file explains the decisions you made across the whole bootcamp.
 **The call:** the API contract in `schemas.py` is Pydantic, not a `@dataclass` like Week 1's `Hit`.
 
 > In one or two lines: what does Pydantic give a FastAPI app that a dataclass does not, and
-> where (if anywhere) would a plain dataclass still have been the right tool here?
+> where (if anywhere) would a plain dataclass still have been the right tool here?<br>
+> ANSWER: Pydantic enforces types at runtime and has built in validation on data

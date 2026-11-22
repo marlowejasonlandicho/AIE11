@@ -87,7 +87,7 @@ def answer_question(request: AskRequest, agent: Runnable) -> AskResponse:
     try:
         result = agent.invoke(
             {"messages": [HumanMessage(content=request.question)]},
-            config={"recursion_limit": 10})
+            config={"recursion_limit": 8})
 
         last_message = result["messages"][-1].content or ""
         
