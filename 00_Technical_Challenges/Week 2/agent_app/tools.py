@@ -73,4 +73,36 @@ def make_search_tool(retriever: BaseRetriever) -> BaseTool:
     Hint: define an inner `@tool`-decorated function and `return` it. The decorator turns a
     function into a tool; closing over `retriever` is what lets the tool reach your index.
     """
-    raise NotImplementedError("Write make_search_tool() in agent_app/tools.py")
+
+    @tool(WELLNESS_SEARCH_TOOL_NAME)
+    def search_wellness_knowledge(query: str) -> str:
+        """Search the Wellness knowledge base for relevant documents matching the query.
+        Use this tool whenever you need factual information to answer the user's question accurately.
+        Only answer from the knowledge base. 
+        If nothing found from the knowledge base, call web search tool. 
+        
+        Args:
+            query: A specific search phrase or set of keywords describing the topic or question.
+
+        Returns:
+            A formatted string containing matching Source Chunk Ids, Relevance scores, and the Content.
+            
+        """
+
+        vector_store = retriever.vectorstore
+
+        docs = vector_store.similarity_search_with_score(
+            query,
+            score_threshold=0.3,
+            k=3
+        )
+
+        if docs:
+            return "\n\n".join(
+                SOURCE_LINE.format(chunk_id=doc.metadata.get("chunk_id"), score=score) 
+                + f"\n{doc.page_content}" for doc, score in docs
+            )
+        else:
+            return "nothing found"
+            
+    return search_wellness_knowledge

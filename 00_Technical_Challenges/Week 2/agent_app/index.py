@@ -13,6 +13,13 @@ Task 4). Two differences here:
 from pathlib import Path
 
 from langchain_core.retrievers import BaseRetriever
+from langchain_community.document_loaders import TextLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain_qdrant import QdrantVectorStore
+
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 QDRANT_PATH = Path(__file__).resolve().parent.parent / "qdrant_storage"  # on-disk, gitignored
@@ -21,6 +28,7 @@ QDRANT_PATH = Path(__file__).resolve().parent.parent / "qdrant_storage"  # on-di
 # (gpt-5.6-luna/terra are reasoning-only and can't tool-call over chat completions.)
 CHAT_MODEL = "gpt-5.4-mini"
 EMBEDDING_MODEL = "text-embedding-3-small"
+COLLECTION_NAME = "ai_engineering_technical_challenge_docs_v1"
 
 
 def build_retriever(corpus_path: Path, k: int = 3) -> BaseRetriever:
@@ -55,4 +63,47 @@ def build_retriever(corpus_path: Path, k: int = 3) -> BaseRetriever:
     Hosted/shared instead? Run a Qdrant server and swap the client for
     `QdrantClient(url="http://localhost:6333")` — that's the multi-process production path.
     """
-    raise NotImplementedError("Write build_retriever() in agent_app/index.py")
+
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embedding_dim = len(embeddings.embed_query("test"))
+
+    _prev_client = globals().get("qdrant_client")
+    if _prev_client is not None:
+        _prev_client.close()
+
+    qdrant_client = QdrantClient(path=str(QDRANT_PATH))
+
+    if not qdrant_client.collection_exists(COLLECTION_NAME):
+      qdrant_client.create_collection(collection_name=COLLECTION_NAME,
+                                      vectors_config=VectorParams(size=embedding_dim, distance=Distance.COSINE))
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, 
+                                                   chunk_overlap = 200, 
+                                                   length_function=len)
+    vector_store = QdrantVectorStore(client = qdrant_client,
+                                     collection_name = COLLECTION_NAME,
+                                     embedding=embeddings)
+
+    if corpus_path.exists():
+      loader = TextLoader(str(corpus_path))
+      documents = loader.load()
+      chunks = text_splitter.split_documents(documents)
+
+      print(f"Loaded {len(documents)} document(s), split into {len(chunks)} chunks")
+      print("-" * 50)
+      print(chunks[0].page_content[:300] + "...")
+
+      for index, chunk in enumerate(chunks):
+         chunk.metadata["chunk_id"] = index
+
+      if qdrant_client.count(COLLECTION_NAME).count == 0:
+        vector_store.add_documents(chunks)
+        print(f"Embedded and stored {len(chunks)} chunks in '{COLLECTION_NAME}'")
+      else:
+        print(f"Loaded existing '{COLLECTION_NAME}' from disk — skipped re-embedding")
+
+    else:
+      raise FileNotFoundError(f"Invalid file: {corpus_path}")
+
+    return vector_store.as_retriever(search_type="similarity_score_threshold", 
+                                     search_kwargs={"k": k,"score_threshold": 0.3})

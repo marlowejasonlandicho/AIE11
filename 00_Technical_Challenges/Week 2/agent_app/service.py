@@ -13,8 +13,11 @@ from langchain_core.runnables import Runnable
 from .graph import build_agent_graph
 from .index import build_retriever
 from .schemas import AskRequest, AskResponse, Source, TraceStep
-from .tools import build_web_search_tool, make_search_tool
+from .tools import build_web_search_tool, make_search_tool, WELLNESS_SEARCH_TOOL_NAME
 
+from langgraph.errors import GraphRecursionError
+import json
+import re
 
 def build_agent(corpus_path: Path, k: int = 3) -> Runnable:
     """Compose the three stubs into one ready agent. Called ONCE at startup by api.py.
@@ -73,4 +76,55 @@ def answer_question(request: AskRequest, agent: Runnable) -> AskResponse:
     live on `getattr(msg, "tool_calls", None)`. A ToolMessage carries `.name` and `.content`.
     Keep this function pure data-shaping — no model or retriever calls happen here.
     """
-    raise NotImplementedError("Write answer_question() in agent_app/service.py")
+
+    pattern = r"^\[source chunk_id=(\S+) score=([0-9.]+)\]\n(.*)"
+    sources: list[Source] = []
+    traces: list[TraceStep] = []
+    used_retrieval = False
+    result = {}
+    last_message = ""
+
+    try:
+        result = agent.invoke(
+            {"messages": [HumanMessage(content=request.question)]},
+            config={"recursion_limit": 10})
+
+        last_message = result["messages"][-1].content or ""
+        
+        for message in result["messages"]:
+            match getattr(message, "type", None):
+                case "ai":
+                    tool_details = ""
+
+                    for tool_calls_attr in getattr(message, "tool_calls", None) or []:
+                        tool_details = f"Call Tool Name: {tool_calls_attr["name"]}, Tool args={tool_calls_attr["args"]   }" 
+                    
+                    tool_details = tool_details or message.response_metadata.get("normalized_finish_reason")
+                    
+                    traces.append(TraceStep(node="agent",detail=tool_details))
+
+                case "tool":
+                    content = getattr(message, "content", None)
+                    tool_details = f"Tool Name: {getattr(message, "name", None)}, Result: {content}"
+
+                    traces.append(TraceStep(node="tools", detail=tool_details))
+                    
+                    if getattr(message, "name", None) == WELLNESS_SEARCH_TOOL_NAME:
+                        used_retrieval = True
+                        for block in content.strip().split("\n\n"):
+                            match = re.match(pattern, block, flags=re.DOTALL)
+                            if match:
+                                sources.append(
+                                    Source(chunk_id=match.group(1), 
+                                        score=float(match.group(2)),
+                                        preview=f"{match.group(3).strip()[:160]} ..."))
+        
+        return AskResponse(answer=last_message, 
+                        sources=sources, 
+                        trace=traces,
+                            used_retrieval=used_retrieval)
+    except GraphRecursionError:
+        return AskResponse(answer=f"Reached max iterations. Best answer so far:\n\n" + last_message,
+                       sources=sources, 
+                       trace=traces,
+                        used_retrieval=used_retrieval)

@@ -9,10 +9,14 @@ the router (the one real decision in any agent) and the graph that wires it toge
 
 from typing import Annotated, Literal, TypedDict
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
+
+from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import ToolNode
 
 from .index import CHAT_MODEL
 
@@ -21,7 +25,7 @@ SYSTEM_PROMPT = (
     "- For questions about health, fitness, nutrition, sleep, or stress, ALWAYS call the "
     "search_wellness_knowledge tool first and answer from what it returns.\n"
     "- If the knowledge base doesn't cover it, say so honestly rather than guessing. For current "
-    "information it can't contain (recent research, today's conditions), use the web search tool "
+    "information it can't contain (recent research, today's conditions), use the web_search tool "
     "if one is available.\n"
     "- For anything else, just answer directly.\n"
     "- Be encouraging, and remind users to consult a professional for medical concerns."
@@ -43,8 +47,11 @@ def should_continue(state: AgentState) -> Literal["tools", "end"]:
     This function is the decision `create_agent` made for you in Session 3. Look at the last
     message in `state["messages"]` and check its `.tool_calls`.
     """
-    raise NotImplementedError("Write should_continue() in agent_app/graph.py")
 
+    last_message = state["messages"][-1]
+    if getattr(last_message, "tool_calls", None):
+        return "tools"
+    return "end"
 
 def build_agent_graph(tools: list[BaseTool]) -> Runnable:
     """Wire the ReAct loop and compile it.
@@ -75,4 +82,28 @@ def build_agent_graph(tools: list[BaseTool]) -> Runnable:
     Guardrail worth knowing: a compiled graph takes a `recursion_limit` at invoke time, so a
     confused loop stops instead of running forever. Bounding it cleanly is a Step 4 option.
     """
-    raise NotImplementedError("Write build_agent_graph() in agent_app/graph.py")
+
+    llm = ChatOpenAI(model=CHAT_MODEL, temperature=0)
+    llm_with_tools = llm.bind_tools(tools)
+
+    def agent_node(state: AgentState):
+        """Call the model with the running conversation; return its reply."""
+
+        messages = [SystemMessage(content=SYSTEM_PROMPT)] +  state["messages"] or ""
+        response = llm_with_tools.invoke(messages)
+
+        return {
+            "messages": [response],
+        }
+    
+    workflow = StateGraph(AgentState)
+
+    workflow.add_node("agent", agent_node)
+    workflow.add_node("tools", ToolNode(tools))
+    workflow.add_edge(START, "agent")    
+    workflow.add_conditional_edges("agent",
+                                   should_continue,
+                                   {"tools": "tools", "end": END})
+    workflow.add_edge("tools", "agent")
+    
+    return workflow.compile()
