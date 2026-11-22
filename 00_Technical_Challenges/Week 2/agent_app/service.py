@@ -97,17 +97,17 @@ def answer_question(request: AskRequest, agent: Runnable) -> AskResponse:
                     tool_details = ""
 
                     for tool_calls_attr in getattr(message, "tool_calls", None) or []:
-                        tool_details = f"Call Tool Name: {tool_calls_attr["name"]}, Tool args={tool_calls_attr["args"]   }" 
+                        tool_details = f"Call Tool Name: {tool_calls_attr["name"]}, Tool args={tool_calls_attr["args"]}" 
                     
                     tool_details = tool_details or message.response_metadata.get("normalized_finish_reason")
                     
-                    traces.append(TraceStep(node="agent",detail=tool_details))
+                    traces.append(TraceStep(node="Agent",detail=tool_details))
 
                 case "tool":
                     content = getattr(message, "content", None)
-                    tool_details = f"Tool Name: {getattr(message, "name", None)}, Result: {content}"
+                    tool_details = f"Tool Name: {getattr(message, "name", None)}, Result: {content[:160]}..."
 
-                    traces.append(TraceStep(node="tools", detail=tool_details))
+                    traces.append(TraceStep(node="Tools", detail=tool_details))
                     
                     if getattr(message, "name", None) == WELLNESS_SEARCH_TOOL_NAME:
                         used_retrieval = True
@@ -122,7 +122,7 @@ def answer_question(request: AskRequest, agent: Runnable) -> AskResponse:
         return AskResponse(answer=last_message, 
                         sources=sources, 
                         trace=traces,
-                            used_retrieval=used_retrieval)
+                        used_retrieval=used_retrieval)
     except GraphRecursionError:
         return AskResponse(answer=f"Reached max iterations. Best answer so far:\n\n" + last_message,
                        sources=sources, 

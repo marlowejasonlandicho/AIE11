@@ -3,61 +3,586 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agentic Wellness Search — starter</title>
+  <title>Wellness Compass</title>
   <style>
-    :root { color-scheme: light dark; }
-    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-    textarea { width: 100%; box-sizing: border-box; padding: .6rem; font: inherit; }
-    button { margin-top: .5rem; padding: .5rem 1rem; font: inherit; cursor: pointer; }
-    .banner { background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; padding: .6rem .8rem; border-radius: 6px; font-size: .9rem; }
-    .answer { white-space: pre-wrap; margin-top: 1rem; padding: .8rem; border: 1px solid #8884; border-radius: 6px; }
-    .source { font-size: .85rem; color: #6a6a6a; border-left: 3px solid #8884; padding-left: .6rem; margin: .4rem 0; }
-    .tag { font-size: .75rem; padding: .1rem .4rem; border-radius: 4px; background: #8882; }
+    :root {
+      --blue-950: #102a43;
+      --blue-700: #1d70a2;
+      --blue-100: #dbeafe;
+      --orange-500: #f97316;
+      --orange-100: #ffedd5;
+      --cream: #fffaf3;
+      --ink: #18324a;
+      --muted: #66788a;
+      --line: #d9e2ec;
+      --white: #ffffff;
+      color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(249, 115, 22, .16), transparent 22rem),
+        linear-gradient(135deg, #f7fbff 0%, #fffaf3 70%, #fff4e7 100%);
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      color: var(--blue-950);
+      letter-spacing: -.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      color: white;
+      background: linear-gradient(135deg, var(--orange-500), #fb923c);
+      box-shadow: 0 8px 18px rgba(249, 115, 22, .22);
+    }
+
+    .docs-link {
+      color: var(--blue-700);
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .search-card,
+    .answer-card,
+    .side-card {
+      border: 1px solid rgba(29, 112, 162, .12);
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 18px 50px rgba(16, 42, 67, .08);
+      backdrop-filter: blur(12px);
+    }
+
+    .search-card {
+      padding: clamp(24px, 5vw, 48px);
+      border-radius: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: var(--orange-500);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 680px;
+      margin: 0 0 12px;
+      font-size: clamp(2.2rem, 6vw, 4.5rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+      color: var(--blue-950);
+    }
+
+    .subtitle {
+      max-width: 600px;
+      margin: 0 0 28px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .prompt-box {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .prompt-box:focus-within {
+      border-color: var(--blue-700);
+      box-shadow: 0 0 0 4px rgba(29, 112, 162, .1);
+    }
+
+    textarea {
+      flex: 1;
+      min-height: 64px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      padding: 12px;
+      font: inherit;
+      line-height: 1.5;
+      color: var(--ink);
+      background: transparent;
+    }
+
+    textarea::placeholder { color: #94a3b8; }
+
+    .ask-button {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      border: 0;
+      border-radius: 14px;
+      color: white;
+      background: var(--orange-500);
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: transform .15s, background .15s;
+    }
+
+    .ask-button:hover { background: #ea580c; transform: translateY(-1px); }
+    .ask-button:disabled { opacity: .65; cursor: wait; transform: none; }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .suggestion {
+      border: 1px solid #bed6e8;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--blue-700);
+      background: #f7fbff;
+      font: inherit;
+      font-size: .82rem;
+      cursor: pointer;
+    }
+
+    .suggestion:hover { border-color: var(--orange-500); color: #c2410c; }
+
+    .side-card {
+      overflow: hidden;
+      border-radius: 24px;
+    }
+
+    .side-heading {
+      margin: 0;
+      padding: 18px 20px;
+      color: white;
+      background: var(--blue-950);
+      font-size: .95rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--orange-500);
+      box-shadow: 0 0 0 5px var(--orange-100);
+    }
+
+    .status strong { display: block; font-size: .86rem; }
+    .status span { color: var(--muted); font-size: .78rem; }
+
+    .trace { padding: 8px 20px 18px; }
+
+    .trace-item {
+      position: relative;
+      padding: 10px 0 10px 18px;
+      color: var(--muted);
+      font-size: .78rem;
+      border-left: 1px solid var(--line);
+    }
+
+    .trace-item:last-child { border-left-color: transparent; }
+    .trace-item::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 16px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--blue-700);
+    }
+
+    .trace-item strong { display: block; color: var(--ink); margin-bottom: 2px; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .answer-card {
+      min-height: 180px;
+      padding: 28px;
+      border-radius: 24px;
+    }
+
+    .answer-card[hidden] { display: none; }
+
+    .answer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .answer-header h2 { margin: 0; font-size: 1.1rem; }
+
+    .retrieval-tag {
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #9a3412;
+      background: var(--orange-100);
+      font-size: .75rem;
+      font-weight: 800;
+    }
+
+    .retrieval-tag.used { color: #075985; background: var(--blue-100); }
+
+    #answer {
+      line-height: 1.75;
+    }
+
+    #answer > :first-child { margin-top: 0; }
+    #answer > :last-child { margin-bottom: 0; }
+    #answer h1, #answer h2, #answer h3 { color: var(--blue-950); line-height: 1.3; }
+    #answer h1 { font-size: 1.6rem; }
+    #answer h2 { font-size: 1.3rem; }
+    #answer h3 { font-size: 1.1rem; }
+    #answer a { color: var(--blue-700); }
+    #answer ul, #answer ol { padding-left: 1.5rem; }
+    #answer li + li { margin-top: .35rem; }
+    #answer blockquote {
+      margin: 1rem 0;
+      padding: .25rem 1rem;
+      border-left: 3px solid var(--orange-500);
+      color: var(--muted);
+      background: var(--cream);
+    }
+    #answer code {
+      padding: .15rem .35rem;
+      border-radius: 5px;
+      color: var(--blue-950);
+      background: var(--blue-100);
+      font-size: .9em;
+    }
+    #answer pre {
+      overflow-x: auto;
+      padding: 14px;
+      border-radius: 12px;
+      color: #e2e8f0;
+      background: var(--blue-950);
+    }
+    #answer pre code { padding: 0; color: inherit; background: transparent; }
+
+    .sources-card {
+      min-height: 180px;
+      padding: 20px;
+      border: 1px solid rgba(29, 112, 162, .12);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .72);
+    }
+
+    .sources-card h2 { margin: 0 0 14px; font-size: 1rem; }
+
+    .source {
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--orange-500);
+      border-radius: 8px;
+      color: var(--muted);
+      background: white;
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+
+    .source-meta {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--blue-700);
+      font-weight: 800;
+    }
+
+    .empty-sources { color: var(--muted); font-size: .82rem; }
+
+    .error {
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 14px;
+      color: #991b1b;
+      background: #fff1f2;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.5);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 800px) {
+      .shell { width: min(100% - 20px, 680px); padding-top: 16px; }
+      .hero, .content-grid { grid-template-columns: 1fr; }
+      .side-card { order: 2; }
+      .search-card { padding: 24px 18px; }
+      h1 { font-size: clamp(2.4rem, 12vw, 4rem); }
+    }
+
+    @media (max-width: 480px) {
+      .topbar { margin-bottom: 16px; }
+      .docs-link { display: none; }
+      .prompt-box { align-items: flex-end; }
+    }
   </style>
 </head>
 <body>
-  <h1>Agentic Wellness Search</h1>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <span>Wellness Compass</span>
+      </div>
+      <a class="docs-link" href="/docs">API documentation →</a>
+    </header>
 
-  <p class="banner">
-    ⚠️ <strong>This is a starter page — part of the challenge is to replace it.</strong>
-    It exists only to prove the backend works. Build your own UI (streaming, chat history,
-    a sources panel, your own styling) against the same <code>POST /ask</code> endpoint.
-    API docs are at <a href="/docs">/docs</a>.
-  </p>
+    <section class="hero">
+      <div class="search-card">
+        <div class="eyebrow"><span>●</span> Agentic wellness search</div>
+        <h1>Find your next healthy step.</h1>
+        <p class="subtitle">Ask a wellness question and get a grounded answer from the knowledge available to the agent.</p>
 
-  <textarea id="q" rows="3" placeholder="Ask a wellness question…">What are some tips for better sleep?</textarea>
-  <button id="go">Ask</button>
+        <form id="ask-form">
+          <div class="prompt-box">
+            <textarea id="question" rows="2" maxlength="2000" placeholder="Ask about sleep, nutrition, movement…" aria-label="Wellness question"></textarea>
+            <button class="ask-button" id="ask-button" type="submit" aria-label="Ask question">→</button>
+          </div>
+        </form>
 
-  <div id="out"></div>
+        <div class="suggestions" aria-label="Suggested questions">
+          <button class="suggestion" type="button" data-question="What are some tips for better sleep?">Better sleep</button>
+          <button class="suggestion" type="button" data-question="How can I build a simple daily exercise routine?">Daily exercise</button>
+          <button class="suggestion" type="button" data-question="What are healthy ways to manage everyday stress?">Manage stress</button>
+        </div>
+      </div>
 
+      <aside class="side-card">
+        <h2 class="side-heading">Agent activity</h2>
+        <div class="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="status-title">Ready to help</strong>
+            <span id="status-detail">Waiting for a question</span>
+          </div>
+        </div>
+        <div class="trace" id="trace">
+          <div class="trace-item"><strong>Agent</strong>Awaiting your question</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="content-grid" id="results" hidden>
+      <article class="answer-card">
+        <div class="answer-header">
+          <h2>Your answer</h2>
+          <span class="retrieval-tag" id="retrieval-tag">Retrieval</span>
+        </div>
+        <div id="answer"></div>
+      </article>
+
+      <aside class="sources-card">
+        <h2>Sources <span id="source-count"></span></h2>
+        <div id="sources"><p class="empty-sources">No sources returned.</p></div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
   <script>
-    const out = document.getElementById("out");
-    document.getElementById("go").addEventListener("click", async () => {
-      const question = document.getElementById("q").value.trim();
-      if (!question) return;
-      out.innerHTML = "<p>Thinking…</p>";
+    const form = document.getElementById("ask-form");
+    const questionInput = document.getElementById("question");
+    const askButton = document.getElementById("ask-button");
+    const results = document.getElementById("results");
+    const answerElement = document.getElementById("answer");
+    const sourcesElement = document.getElementById("sources");
+    const sourceCount = document.getElementById("source-count");
+    const retrievalTag = document.getElementById("retrieval-tag");
+    const statusTitle = document.getElementById("status-title");
+    const statusDetail = document.getElementById("status-detail");
+    const traceElement = document.getElementById("trace");
+
+    function setLoading(isLoading) {
+      askButton.disabled = isLoading;
+      askButton.setAttribute("aria-busy", String(isLoading));
+      askButton.innerHTML = isLoading ? '<span class="spinner" aria-hidden="true"></span>' : "→";
+      if (isLoading) {
+        statusTitle.textContent = "Searching wellness knowledge";
+        statusDetail.textContent = "This may take a moment";
+        traceElement.replaceChildren();
+        traceElement.append(createTraceItem("Agent", "Processing your question"));
+      }
+    }
+
+    function createTraceItem(node, detail) {
+      const item = document.createElement("div");
+      item.className = "trace-item";
+      const title = document.createElement("strong");
+      title.textContent = node;
+      item.append(title, document.createTextNode(detail));
+      return item;
+    }
+
+    function showError(message) {
+      results.hidden = false;
+      answerElement.replaceChildren();
+      const error = document.createElement("div");
+      error.className = "error";
+      error.textContent = message;
+      answerElement.append(error);
+      sourcesElement.replaceChildren();
+      const empty = document.createElement("p");
+      empty.className = "empty-sources";
+      empty.textContent = "No sources available.";
+      sourcesElement.append(empty);
+      sourceCount.textContent = "";
+      retrievalTag.textContent = "Unavailable";
+      retrievalTag.className = "retrieval-tag";
+      statusTitle.textContent = "Request failed";
+      statusDetail.textContent = "Please try again";
+    }
+
+    async function askQuestion(question) {
+      const trimmed = question.trim();
+      if (!trimmed) {
+        questionInput.focus();
+        return;
+      }
+
+      setLoading(true);
       try {
-        const res = await fetch("/ask", {
+        const response = await fetch("/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, k: 3 }),
+          body: JSON.stringify({ question: trimmed, k: 3 })
         });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          out.innerHTML = `<p class="banner">${res.status}: ${err.detail || "request failed"}</p>`;
-          return;
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(`${response.status}: ${data.detail || "The request failed."}`);
         }
-        const data = await res.json();
-        const sources = (data.sources || [])
-          .map((s) => `<div class="source">[chunk ${s.chunk_id} · ${s.score.toFixed(3)}] ${s.preview}</div>`)
-          .join("");
-        out.innerHTML =
-          `<div class="answer">${data.answer}</div>` +
-          `<p><span class="tag">retrieval: ${data.used_retrieval ? "used" : "not used"}</span></p>` +
-          sources;
-      } catch (e) {
-        out.innerHTML = `<p class="banner">Network error: ${e}</p>`;
+
+        results.hidden = false;
+        const answerMarkdown = data.answer || "No answer was returned.";
+        if (typeof window.markdownit !== "function" || !window.DOMPurify) {
+          throw new Error("Markdown rendering could not be loaded. Check your internet connection and try again.");
+        }
+        const markdown = window.markdownit({ html: false, linkify: false });
+        answerElement.innerHTML = window.DOMPurify.sanitize(markdown.render(answerMarkdown));
+
+        retrievalTag.textContent = data.used_retrieval ? "Retrieval used" : "Direct answer";
+        retrievalTag.className = `retrieval-tag${data.used_retrieval ? " used" : ""}`;
+
+        const sources = Array.isArray(data.sources) ? data.sources : [];
+        sourceCount.textContent = `(${sources.length})`;
+        sourcesElement.replaceChildren();
+        if (sources.length === 0) {
+          const empty = document.createElement("p");
+          empty.className = "empty-sources";
+          empty.textContent = "No supporting sources returned.";
+          sourcesElement.append(empty);
+        } else {
+          sources.forEach((source) => {
+            const card = document.createElement("div");
+            card.className = "source";
+            const meta = document.createElement("span");
+            meta.className = "source-meta";
+            const score = Number.isFinite(source.score) ? source.score.toFixed(3) : "—";
+            meta.textContent = `Chunk ${source.chunk_id} · Score ${score}`;
+            card.append(meta, document.createTextNode(source.preview || ""));
+            sourcesElement.append(card);
+          });
+        }
+
+        traceElement.replaceChildren();
+        const trace = Array.isArray(data.trace) ? data.trace : [];
+        if (trace.length === 0) {
+          traceElement.append(createTraceItem("Agent", data.used_retrieval ? "Knowledge retrieval completed" : "Response completed"));
+        } else {
+          trace.forEach((step) => traceElement.append(createTraceItem(step.node || "Agent", step.detail || "")));
+        }
+
+        statusTitle.textContent = "Answer complete";
+        statusDetail.textContent = `${sources.length} source${sources.length === 1 ? "" : "s"} found`;
+        results.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (error) {
+        showError(error instanceof Error ? `Network or API error: ${error.message}` : "An unexpected error occurred.");
+      } finally {
+        setLoading(false);
       }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      askQuestion(questionInput.value);
+    });
+
+    questionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        askQuestion(questionInput.value);
+      }
+    });
+
+    document.querySelectorAll(".suggestion").forEach((button) => {
+      button.addEventListener("click", () => {
+        questionInput.value = button.dataset.question || "";
+        askQuestion(questionInput.value);
+      });
     });
   </script>
 </body>
